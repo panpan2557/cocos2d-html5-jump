@@ -1,8 +1,7 @@
 var Block = cc.Sprite.extend({
     ctor: function( x1, y1, x2, y2 ) {
         this._super();
-        this.initWithFile( 'res/images/ground.png',
-                           cc.rect( 0, 0, x2-x1, y2 - y1 ) );
+        this.initWithFile( 'res/images/ground.png', cc.rect( 0, 0, x2-x1, y2 - y1 ) );
         this.setAnchorPoint( cc.p( 0, 0 ) );
         this.setPosition( cc.p( x1, y1 ) );
     },
@@ -12,25 +11,26 @@ var Block = cc.Sprite.extend({
     },
 
     hitTop: function( oldRect, newRect ) {
-        var brect = this.getBoundingBoxToWorld();
-        if ( cc.rectGetMinY( oldRect ) >= cc.rectGetMaxY( brect ) ) {
-            var loweredNewRect = cc.rect( newRect.x,
-                                          newRect.y - 1,
-                                          newRect.width,
-                                          newRect.height + 1 );
-            var uRect = cc.rectUnion( oldRect, loweredNewRect );
-            return cc.rectIntersectsRect( uRect, brect );
+        var borderRect = this.getBoundingBoxToWorld();
+        if ( cc.rectGetMinY( oldRect ) >= cc.rectGetMaxY( borderRect ) ) {
+            var loweredNewRect = this.getLowerNewRect( newRect );
+            var unionRect = cc.rectUnion( oldRect, loweredNewRect );
+            return cc.rectIntersectsRect( unionRect, borderRect );
         }
         return false;
     },
 
     onTop: function( rect ) {
-        var brect = this.getBoundingBoxToWorld();
-        var bminx = cc.rectGetMinX( brect );
-        var bmaxx = cc.rectGetMaxX( brect );
-        var minx = cc.rectGetMinX( rect );
-        var maxx = cc.rectGetMaxX( rect );
-        return ( minx <= bmaxx ) && ( bminx <= maxx );
+        var borderRect = this.getBoundingBoxToWorld();
+        var borderMinX = cc.rectGetMinX( borderRect );
+        var borderMaxX = cc.rectGetMaxX( borderRect );
+        var minX = cc.rectGetMinX( rect );
+        var maxX = cc.rectGetMaxX( rect );
+        return ( minX <= borderMaxX ) && ( borderMinX <= maxX );
+    },
+
+    getLowerNewRect: function( newRect ) {
+         return cc.rect( newRect.x, newRect.y - 1, newRect.width, newRect.height + 1 );
     }
 });
 

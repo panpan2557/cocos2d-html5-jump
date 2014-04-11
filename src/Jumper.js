@@ -5,12 +5,6 @@ var Jumper = cc.Sprite.extend({
         this.setAnchorPoint( cc.p( 0.5, 0 ) );
         this.x = x;
         this.y = y;
-
-        this.maxVx = 8;
-        this.accX = 0.25;
-        this.backAccX = 0.5;
-        this.jumpV = 20;
-        this.g = -1;
         
         this.vx = 0;
         this.vy = 0;
@@ -27,8 +21,7 @@ var Jumper = cc.Sprite.extend({
     },
 
     updateSpritePosition: function() {
-        this.setPosition( cc.p( Math.round( this.x ),
-                                Math.round( this.y ) ) );
+        this.setPosition( cc.p( Math.round( this.x ), Math.round( this.y ) ) );
     },
 
     getPlayerRect: function() {
@@ -58,12 +51,12 @@ var Jumper = cc.Sprite.extend({
 
     updateXMovement: function() {
         if ( this.ground ) {
-            if ( ( !this.moveLeft ) && ( !this.moveRight ) ) {
+            if ( this.isNotPressKey() ) {
                 this.autoDeaccelerateX();
             } else if ( this.moveRight ) {
-                this.accelerateX( 1 );
+                this.accelerateX( Jumper.ACC );
             } else {
-                this.accelerateX( -1 );
+                this.accelerateX( -Jumper.ACC );
             }
         }
         this.x += this.vx;
@@ -79,14 +72,18 @@ var Jumper = cc.Sprite.extend({
         if ( this.ground ) {
             this.vy = 0;
             if ( this.jump ) {
-                this.vy = this.jumpV;
+                this.vy = Jumper.JUMP_V;
                 this.y = this.ground.getTopY() + this.vy;
                 this.ground = null;
             }
         } else {
-            this.vy += this.g;
+            this.vy += Jumper.G;
             this.y += this.vy;
         }
+    },
+
+    isNotPressKey: function() {
+        return ( !this.moveLeft ) && ( !this.moveRight );
     },
 
     isSameDirection: function( dir ) {
@@ -96,26 +93,34 @@ var Jumper = cc.Sprite.extend({
 
     accelerateX: function( dir ) {
         if ( this.isSameDirection( dir ) ) {
-            this.vx += dir * this.accX;
-            if ( Math.abs( this.vx ) > this.maxVx ) {
-                this.vx = dir * this.maxVx;
+            this.vx += dir * Jumper.ACC_X;
+            if ( this.vxIsHigherThanMaxV() ) {
+                this.vx = dir * Jumper.MAX_VX;
             }
         } else {
-            if ( Math.abs( this.vx ) >= this.backAccX ) {
-                this.vx += dir * this.backAccX;
+            if ( this.vxIsHigherThanBackVx() ) {
+                this.vx += dir * Jumper.BACK_ACC_X;
             } else {
                 this.vx = 0;
             }
         }
     },
+
+    vxIsHigherThanMaxV: function() {
+        return Math.abs( this.vx ) > Jumper.MAX_VX;
+    },
+
+    vxIsHigherThanBackVx: function() {
+        return Math.abs( this.vx ) >= Jumper.BACK_ACC_X;
+    },
     
     autoDeaccelerateX: function() {
-        if ( Math.abs( this.vx ) < this.accX ) {
+        if ( Math.abs( this.vx ) < Jumper.ACC_X ) {
             this.vx = 0;
         } else if ( this.vx > 0 ) {
-            this.vx -= this.accX;
+            this.vx -= Jumper.ACC_X;
         } else {
-            this.vx += this.accX;
+            this.vx += Jumper.ACC_X;
         }
     },
 
@@ -126,10 +131,7 @@ var Jumper = cc.Sprite.extend({
             }
         } else {
             if ( this.vy <= 0 ) {
-                var topBlock = this.findTopBlock( this.blocks,
-                                                  oldRect,
-                                                  newRect );
-                
+                var topBlock = this.findTopBlock( this.blocks, oldRect, newRect );
                 if ( topBlock ) {
                     this.ground = topBlock;
                     this.y = topBlock.getTopY();
@@ -172,6 +174,12 @@ var Jumper = cc.Sprite.extend({
     }
 });
 
+Jumper.ACC = 1;
+Jumper.G = -1;
+Jumper.JUMP_V = 20;
+Jumper.BACK_ACC_X = 0.5;
+Jumper.ACC_X = 0.25;
+Jumper.MAX_VX = 8;
 Jumper.KEYMAP = {}
 Jumper.KEYMAP[cc.KEY.left] = 'moveLeft';
 Jumper.KEYMAP[cc.KEY.right] = 'moveRight';
